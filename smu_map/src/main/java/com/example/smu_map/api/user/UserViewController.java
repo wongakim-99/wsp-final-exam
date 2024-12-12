@@ -21,4 +21,10 @@ public class UserViewController {
         model.addAttribute("errorMessage", "유효하지 않은 아이디 또는 비밀번호 입니다");
         return "login-error"; // 에러 페이지로 이동
     }
+
+    @GetMapping("/main")
+    public String getMainPage() {
+        // "main"은 templates 폴더에 있는 main.html (또는 main.jsp 등) 템플릿 파일을 반환
+        return "main";
+    }
 }
