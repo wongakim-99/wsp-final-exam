@@ -36,6 +36,7 @@ public class SecurityConfig {
                 .formLogin(form -> form
                         .loginPage("/login") // 사용자 정의 로그인 페이지
                         .defaultSuccessUrl("/main", true) // 로그인 성공 후 이동 경로
+                        .failureUrl("/login-error") // 로그인 실패 시
                         .permitAll()
                 )
                 .logout(logout -> logout

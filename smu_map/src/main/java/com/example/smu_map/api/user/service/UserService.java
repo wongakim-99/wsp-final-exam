@@ -14,10 +14,14 @@ public class UserService {
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
-    public Long save(AddUserRequest dto){
+    public Long save(AddUserRequest dto) {
+        // username 중복 확인
+        if (userRepository.existsByEmail(dto.getEmail())) {
+            throw new IllegalArgumentException("Email already exists"); // 예외 던지기
+        }
+
         return userRepository.save(User.builder()
                 .email(dto.getEmail())
-                // 패스워드 암호화
                 .password(bCryptPasswordEncoder.encode(dto.getPassword()))
                 .build()).getId();
     }
