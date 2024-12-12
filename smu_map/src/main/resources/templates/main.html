@@ -3,34 +3,55 @@
 <head>
     <title>지도 업로드</title>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        #status {
+            margin-top: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            color: #555;
+        }
+    </style>
 </head>
 <body>
 <h1>지도 업로드</h1>
 <form id="uploadForm" enctype="multipart/form-data">
     <input type="file" name="file" id="fileInput" accept=".zip" required />
-    <button type="submit">업로드</button>
+    <button type="submit" id="uploadButton">업로드</button>
 </form>
 <div id="status"></div>
 
 <script>
-    $("#uploadForm").on("submit", function (e) {
-        e.preventDefault(); // 기본 폼 제출 막기
-        let formData = new FormData();
-        let file = $("#fileInput")[0].files[0];
-        formData.append("file", file);
+    $(document).ready(function () {
+        $("#uploadForm").on("submit", function (e) {
+            e.preventDefault(); // 기본 폼 제출 동작을 막음
 
-        $.ajax({
-            url: "/upload", // 서버 업로드 엔드포인트
-            method: "POST",
-            data: formData,
-            processData: false,
-            contentType: false,
-            success: function (response) {
-                $("#status").text("업로드 성공: " + response);
-            },
-            error: function (error) {
-                $("#status").text("업로드 실패: " + error.responseText);
-            }
+            // 로딩 상태 표시
+            $("#status").text("파일 로딩 중...");
+            $("#uploadButton").prop("disabled", true); // 버튼 비활성화
+
+            let formData = new FormData();
+            let file = $("#fileInput")[0].files[0];
+            formData.append("file", file);
+
+            $.ajax({
+                url: "/upload", // 서버 업로드 엔드포인트
+                method: "POST",
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function (response) {
+                    // 업로드 성공 메시지 표시
+                    $("#status").text("업로드 성공: " + response);
+                },
+                error: function (error) {
+                    // 에러 메시지 표시
+                    $("#status").text("업로드 실패: " + error.responseText);
+                },
+                complete: function () {
+                    // 버튼 활성화
+                    $("#uploadButton").prop("disabled", false);
+                }
+            });
         });
     });
 </script>

@@ -1,6 +1,7 @@
 package com.example.smu_map.api.map;
 
 import com.example.smu_map.domain.Tile;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -17,6 +18,7 @@ import java.nio.file.StandardCopyOption;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+@Slf4j
 @RestController
 public class TileUploadController {
     private final TileRepository tileRepository;
@@ -28,6 +30,10 @@ public class TileUploadController {
     @PostMapping("/upload")
     public ResponseEntity<String> uploadTilesZip(@RequestParam("file") MultipartFile zipFile) {
         try {
+            // 파일 정보 로그 출력
+            log.info("Received file : {}", zipFile.getOriginalFilename());
+            log.info("File size : {} bytes", zipFile.getSize());
+
             // 1. ZIP 파일 저장 경로
             String uploadDir = "uploaded_tiles/";
             File uploadDirFile = new File(uploadDir);
@@ -40,6 +46,9 @@ public class TileUploadController {
             File unzippedDir = new File("tiles/");
             if (!unzippedDir.exists()) unzippedDir.mkdirs();
             unzip(zipPath.toFile(), unzippedDir);
+
+            // 로그 : 타일 디렉토리 생성확인
+            log.info("Tiles directory created at : {}", unzippedDir.getAbsolutePath());
 
             // 3. 타일 파일 데이터베이스 저장
             saveTilesToDatabase(unzippedDir);
