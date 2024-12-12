@@ -4,6 +4,13 @@
     <title>지도 업로드</title>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <style>
+        #map {
+            position: relative;
+            width: 800px;
+            height: 600px;
+            overflow: hidden;
+            border: 1px solid #000;
+        }
         #status {
             margin-top: 10px;
             font-size: 16px;
@@ -14,19 +21,35 @@
 </head>
 <body>
 <h1>지도 업로드</h1>
+
 <form id="uploadForm" enctype="multipart/form-data">
     <input type="file" name="file" id="fileInput" accept=".zip" required />
     <button type="submit" id="uploadButton">업로드</button>
 </form>
 <div id="status"></div>
 
+<h2>지도</h2>
+<div id="map"></div>
+
+<button onclick="moveMap('up')">위로</button>
+<button onclick="moveMap('down')">아래로</button>
+<button onclick="moveMap('left')">왼쪽</button>
+<button onclick="moveMap('right')">오른쪽</button>
+<button onclick="zoomMap('in')">확대</button>
+<button onclick="zoomMap('out')">축소</button>
+
 <script>
+    let centerX = 49;
+    let centerY = 49;
+    let zoomLevel = 1;
+
+    // 파일 업로드 및 로딩 메시지 표시
     $(document).ready(function () {
         $("#uploadForm").on("submit", function (e) {
             e.preventDefault(); // 기본 폼 제출 동작을 막음
 
             // 로딩 상태 표시
-            $("#status").text("파일 로딩 중...");
+            $("#status").text("파일 업로드 중입니다...");
             $("#uploadButton").prop("disabled", true); // 버튼 비활성화
 
             let formData = new FormData();
@@ -42,9 +65,12 @@
                 success: function (response) {
                     // 업로드 성공 메시지 표시
                     $("#status").text("업로드 성공: " + response);
+
+                    // 초기 지도 데이터 로드
+                    loadMap(centerX, centerY);
                 },
                 error: function (error) {
-                    // 에러 메시지 표시
+                    // 업로드 실패 메시지 표시
                     $("#status").text("업로드 실패: " + error.responseText);
                 },
                 complete: function () {
@@ -53,6 +79,47 @@
                 }
             });
         });
+    });
+
+    // 지도 데이터를 서버에서 읽어오는 함수
+    function loadMap(centerX, centerY) {
+        $("#status").text("지도 로딩 중...");
+        $.ajax({
+            url: `/tiles?centerX=${centerX}&centerY=${centerY}`,
+            method: "GET",
+            success: function (tilePaths) {
+                $("#map").empty();
+                tilePaths.forEach(tilePath => {
+                    const img = `<img src="${tilePath}" style="position:absolute;"/>`;
+                    $("#map").append(img);
+                });
+                $("#status").text("지도 로딩 완료");
+            },
+            error: function () {
+                $("#status").text("지도 로드 실패");
+            }
+        });
+    }
+
+    // 지도 이동 함수
+    function moveMap(direction) {
+        if (direction === 'up') centerY--;
+        if (direction === 'down') centerY++;
+        if (direction === 'left') centerX--;
+        if (direction === 'right') centerX++;
+        loadMap(centerX, centerY);
+    }
+
+    // 지도 확대/축소 함수
+    function zoomMap(direction) {
+        if (direction === 'in') zoomLevel += 0.1;
+        if (direction === 'out') zoomLevel -= 0.1;
+        $("#map img").css("transform", `scale(${zoomLevel})`);
+    }
+
+    // 초기 지도 로드
+    $(document).ready(function () {
+        loadMap(centerX, centerY);
     });
 </script>
 </body>
