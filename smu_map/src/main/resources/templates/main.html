@@ -11,6 +11,13 @@
             overflow: hidden;
             border: 1px solid #000;
         }
+
+        #map img {
+            position: absolute;
+            width: 100px; /* 타일 크기 */
+            height: 100px;
+        }
+
         #status {
             margin-top: 10px;
             font-size: 16px;
@@ -57,7 +64,7 @@
             formData.append("file", file);
 
             $.ajax({
-                url: "/upload", // 서버 업로드 엔드포인트
+                url: "/map/upload", // 서버 업로드 엔드포인트
                 method: "POST",
                 data: formData,
                 processData: false,
@@ -85,13 +92,25 @@
     function loadMap(centerX, centerY) {
         $("#status").text("지도 로딩 중...");
         $.ajax({
-            url: `/tiles?centerX=${centerX}&centerY=${centerY}`,
+            url: "/map/tiles", // 타일 목록 가져오기
             method: "GET",
             success: function (tilePaths) {
-                $("#map").empty();
+                $("#map").empty(); // 기존 지도 내용 초기화
                 tilePaths.forEach(tilePath => {
-                    const img = `<img src="${tilePath}" style="position:absolute;"/>`;
-                    $("#map").append(img);
+                    // 각 타일의 X, Y 좌표 추출
+                    const coords = tilePath.match(/tile_(\d+)_(\d+)\.png/);
+                    if (coords && coords.length === 3) {
+                        const tileX = parseInt(coords[1], 10);
+                        const tileY = parseInt(coords[2], 10);
+
+                        // 타일 생성 및 추가
+                        const img = `<img src="${tilePath}" class="tile"
+                                   style="top: ${(tileY - centerY) * 100}px;
+                                          left: ${(tileX - centerX) * 100}px;" />`;
+                        $("#map").append(img);
+                    } else {
+                        console.error(`Invalid tile path: ${tilePath}`);
+                    }
                 });
                 $("#status").text("지도 로딩 완료");
             },
@@ -103,10 +122,10 @@
 
     // 지도 이동 함수
     function moveMap(direction) {
-        if (direction === 'up') centerY--;
-        if (direction === 'down') centerY++;
-        if (direction === 'left') centerX--;
-        if (direction === 'right') centerX++;
+        if (direction === 'up' && centerY > 0) centerY--;
+        if (direction === 'down' && centerY < 99) centerY++;
+        if (direction === 'left' && centerX > 0) centerX--;
+        if (direction === 'right' && centerX < 99) centerX++;
         loadMap(centerX, centerY);
     }
 
