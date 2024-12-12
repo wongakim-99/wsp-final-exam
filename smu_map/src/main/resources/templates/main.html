@@ -1,11 +1,38 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html>
 <head>
-    <title>Main Page</title>
+    <title>지도 업로드</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 <body>
-<h1>Welcome to the Main Page!</h1>
-<p>You have successfully logged in.</p>
-<a href="/logout">Logout</a>
+<h1>지도 업로드</h1>
+<form id="uploadForm" enctype="multipart/form-data">
+    <input type="file" name="file" id="fileInput" accept=".zip" required />
+    <button type="submit">업로드</button>
+</form>
+<div id="status"></div>
+
+<script>
+    $("#uploadForm").on("submit", function (e) {
+        e.preventDefault(); // 기본 폼 제출 막기
+        let formData = new FormData();
+        let file = $("#fileInput")[0].files[0];
+        formData.append("file", file);
+
+        $.ajax({
+            url: "/upload", // 서버 업로드 엔드포인트
+            method: "POST",
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function (response) {
+                $("#status").text("업로드 성공: " + response);
+            },
+            error: function (error) {
+                $("#status").text("업로드 실패: " + error.responseText);
+            }
+        });
+    });
+</script>
 </body>
 </html>
