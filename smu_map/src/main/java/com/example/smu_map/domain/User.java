@@ -35,7 +35,6 @@ public class User implements UserDetails { // UserDetails를 상속받아 인증
         this.password = password;
     }
 
-
     @Override // 권한 반환
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority("user"));
